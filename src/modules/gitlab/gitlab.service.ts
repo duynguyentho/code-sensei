@@ -24,7 +24,7 @@ export class GitlabService {
       const mergeRequestId = data.merge_request.iid;
 
       // Call the review function asynchronously
-      reviewMergeRequest(projectId, mergeRequestId, severity).catch(error => {
+      await reviewMergeRequest(projectId, mergeRequestId, severity).catch(error => {
         console.error(
           `Error reviewing merge request ${mergeRequestId} of project ${projectId}:`,
           error,

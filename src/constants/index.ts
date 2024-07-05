@@ -1,0 +1,1 @@
+export const REVIEW_MERGE_REQUEST = 'review_merge_request';

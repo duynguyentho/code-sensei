@@ -3,10 +3,7 @@ import { GitlabService } from './modules/gitlab/gitlab.service';
 
 @Injectable()
 export class AppService {
-  constructor(
-    private readonly gitlabService: GitlabService,
-  ) {
-  }
+  constructor(private readonly gitlabService: GitlabService) {}
   getHello(): string {
     return 'Hello World!';
   }
