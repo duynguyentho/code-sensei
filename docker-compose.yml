@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  sensei:
+    container_name: sensei
+    build:
+      context: .
+      target: development
+      dockerfile: Dockerfile
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GITLAB_HOST=${GITLAB_HOST}
+      - GITLAB_ACCESS_TOKEN=${GITLAB_ACCESS_TOKEN}
+      - GITLAB_WEBHOOK_SECRET=${GITLAB_WEBHOOK_SECRET}
+    volumes:
+      - ./:/usr/src/app
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    networks:
+      - default
+networks:
+  default:
+    driver: bridge
