@@ -12,6 +12,7 @@ export class AppController {
 
   @Post('webhook')
   async webhook(@Req() req: any): Promise<string> {
-    return this.appService.processWebhook(req);
+    await this.appService.processWebhook(req);
+    return 'OK';
   }
 }

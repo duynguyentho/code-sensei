@@ -1,22 +1,20 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { QueueService } from './queue.service';
 import { BullModule } from '@nestjs/bullmq';
 import * as process from 'process';
 import { GitlabModule } from '../gitlab/gitlab.module';
+import { QueueProcessor } from './queue.processor';
 
 @Module({
   imports: [
     BullModule.registerQueue({
-      connection: {
-        host: process.env.REDIS_HOST,
-        port: Number(process.env.REDIS_PORT),
-      },
       name: 'queue',
       prefix: 'queue',
     }),
-    GitlabModule,
+    forwardRef(() => GitlabModule)
   ],
-  providers: [QueueService]
+  providers: [QueueService, QueueProcessor],
+  exports: [QueueService]
 })
 export class QueueModule {
 
