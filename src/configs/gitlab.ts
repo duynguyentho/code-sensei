@@ -4,6 +4,3 @@ export interface GitlabConfig {
   projectId?: string;
   webhookSecret?: string;
 }
-
-
-

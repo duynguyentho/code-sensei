@@ -37,8 +37,6 @@ export async function getOldAndNewFileVersions(
   // Fetch the merge request
   const mergeRequest = await api.MergeRequests.show(projectId, mergeRequestId);
 
-  console.log('mergeRequest', mergeRequest);
-
   // Get the source and target branches of the merge request
   const sourceBranch = mergeRequest.source_branch;
   const targetBranch = mergeRequest.target_branch;

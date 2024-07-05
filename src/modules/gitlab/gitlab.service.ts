@@ -1,19 +1,27 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { api } from './utils/gitlab-api';
-import { reviewMergeRequest } from './utils/merge-request';
 import { SeverityLevel } from './enums';
 import { QueueService } from '../queue/queue.service';
 import { REVIEW_MERGE_REQUEST } from '../../constants';
+import {
+  getChangedFiles,
+  getOldAndNewFileVersions,
+} from './utils/file-versions';
+import { GptService } from '../gpt/gpt.service';
 
 @Injectable()
 export class GitlabService {
   constructor(
     private readonly queueService: QueueService,
+    private gptService: GptService,
   ) {}
 
   async handleMergeRequestComment(commentBody: any, data: any) {
     const currentUser = await api.Users.current();
-    const mentionsCurrentUser = commentBody.includes('@' + currentUser.username);
+    const mentionsCurrentUser = commentBody.includes(
+      '@' + currentUser.username,
+    );
     const asksForReview = commentBody.toLowerCase().includes('review');
 
     let severity: SeverityLevel | null = null;
@@ -34,7 +42,7 @@ export class GitlabService {
         projectId,
         mergeRequestId,
         severity,
-      })
+      });
     }
   }
 
@@ -50,11 +58,33 @@ export class GitlabService {
    * @param severity The severity level of the review (e.g., 'low', 'medium', 'high').
    */
   async pushMergeRequestIntoQueue(projectId, mergeRequestId, severity) {
-    await reviewMergeRequest(projectId, mergeRequestId, severity).catch(error => {
-      console.error(
-        `Error reviewing merge request ${mergeRequestId} of project ${projectId}:`,
-        error,
-      );
-    });
+    await this.reviewMergeRequest(projectId, mergeRequestId, severity).catch(
+      (error) => {
+        console.error(
+          `Error reviewing merge request ${mergeRequestId} of project ${projectId}:`,
+          error,
+        );
+      },
+    );
+  }
+
+  async reviewMergeRequest(
+    projectId: number,
+    mergeRequestId: number,
+    _minSeverity: SeverityLevel = 'low',
+  ): Promise<void> {
+    const changedFiles = await getChangedFiles(projectId, mergeRequestId);
+
+    for (const paths of changedFiles) {
+      const { oldFile, newFile, changedRanges } =
+        await getOldAndNewFileVersions(projectId, mergeRequestId, paths);
+      const response = await this.gptService.askGpt({
+        message: 'What version are you in ?',
+      });
+
+      console.log(response);
+      // TODO: comment to merge request with the response
+      // await placeComments(projectId, mergeRequestId, comments, paths);
+    }
   }
 }
