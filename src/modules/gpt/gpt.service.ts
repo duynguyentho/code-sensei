@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { MAX_RETRIES_ATTEMPTS } from '../../constants';
@@ -8,10 +8,11 @@ import * as process from 'process';
 @Injectable()
 export class GptService {
   constructor(private readonly configService: ConfigService) {}
+  private logger: Logger = new Logger(GptService.name);
 
   getAuthenticationHeaders = () => {
     return {
-      Authorization: `Bearer ${this.configService.get<string>('OPENAI_API_KEY')}`,
+      Authorization: `Bearer ${this.configService.get('OPENAI_API_KEY')}`,
       'Content-Type': 'application/json',
     };
   };
@@ -39,7 +40,8 @@ export class GptService {
           return response.data;
         }
       } catch (e) {
-        if (currentRetries++ >= MAX_RETRIES_ATTEMPTS) {
+        currentRetries++;
+        if (currentRetries >= MAX_RETRIES_ATTEMPTS || retries === false) {
           throw e;
         }
 
@@ -61,10 +63,11 @@ export class GptService {
         ],
         n: 5,
       };
-      const result = await this.getChatCompetitionPrompt(payload, false);
+      const result = await this.getChatCompetitionPrompt(payload, true);
       console.log('Received: ', result);
       if (result?.choices) {
-        return data?.choices.map((choice: any) => choice.message.content);
+        this.logger.log(`Token usage: ${result.usage.total_tokens}`);
+        return result?.choices.map((choice: any) => choice.message.content);
       }
     } catch (e) {
       console.error('Error asking GPT:', e);

@@ -6,7 +6,11 @@ import * as express from 'express';
 import { api } from './modules/gitlab/utils/gitlab-api';
 import { Request, Response, NextFunction } from 'express';
 
-const handleSecretWebhook = (req: Request, res: Response, next: NextFunction) => {
+const handleSecretWebhook = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const requestToken = <string>req.headers['x-gitlab-token'];
   const webhookSecret = <string>process.env.GITLAB_WEBHOOK_SECRET || '';
   if (webhookSecret && requestToken !== webhookSecret) {

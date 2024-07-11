@@ -13,17 +13,17 @@ export async function getChangedFiles(
   console.log(changes.changes);
 
   const filteredFiles = changes
-    .changes!.filter(diff =>
+    .changes!.filter((diff) =>
       // check file extension
-      filesSupported.some(ext => diff.new_path.endsWith(ext)),
+      filesSupported.some((ext) => diff.new_path.endsWith(ext)),
     )
-    .map(diff => ({
+    .map((diff) => ({
       oldPath: diff.old_path,
       newPath: diff.new_path,
       changedRanges: parseDiff(diff.diff),
     }));
 
-  filteredFiles.forEach(path => console.log(`File changed: ${path.newPath}`));
+  filteredFiles.forEach((path) => console.log(`File changed: ${path.newPath}`));
 
   // Return the filtered files
   return filteredFiles;

@@ -10,7 +10,11 @@ export class AppService {
 
   async processWebhook(req: any): Promise<any> {
     const data = req.body;
-    console.log('Received webhook:', data?.object_kind, data?.object_attributes.noteable_type);
+    console.log(
+      'Received webhook:',
+      data?.object_kind,
+      data?.object_attributes.noteable_type,
+    );
 
     if (
       data.object_kind === 'note' &&
@@ -22,7 +26,10 @@ export class AppService {
       console.log(commentBody);
       console.log('====================================');
 
-      return await this.gitlabService.handleMergeRequestComment(commentBody, data);
+      return await this.gitlabService.handleMergeRequestComment(
+        commentBody,
+        data,
+      );
     }
   }
 }

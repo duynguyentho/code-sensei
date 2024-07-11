@@ -11,11 +11,9 @@ import { QueueProcessor } from './queue.processor';
       name: 'queue',
       prefix: 'queue',
     }),
-    forwardRef(() => GitlabModule)
+    forwardRef(() => GitlabModule),
   ],
   providers: [QueueService, QueueProcessor],
-  exports: [QueueService]
+  exports: [QueueService],
 })
-export class QueueModule {
-
-}
+export class QueueModule {}

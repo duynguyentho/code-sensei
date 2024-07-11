@@ -7,10 +7,19 @@ import { BullModule } from '@nestjs/bullmq';
 import { QueueModule } from './modules/queue/queue.module';
 import { GptService } from './modules/gpt/gpt.service';
 import { GptModule } from './modules/gpt/gpt.module';
+import { PromtModule } from './modules/promt/promt.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      validationOptions: {
+        abortEarly: false,
+      },
+      isGlobal: true,
+      cache: true,
+      expandVariables: true,
+      envFilePath: '.env',
+    }),
     GitlabModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
@@ -25,6 +34,7 @@ import { GptModule } from './modules/gpt/gpt.module';
     }),
     QueueModule,
     GptModule,
+    PromtModule,
   ],
   controllers: [AppController],
   providers: [AppService, GptService],

@@ -6,9 +6,7 @@ import { GitlabService } from '../gitlab/gitlab.service';
 
 @Processor('queue')
 export class QueueProcessor extends WorkerHost {
-  constructor(
-    private readonly gitlabService: GitlabService,
-  ) {
+  constructor(private readonly gitlabService: GitlabService) {
     super();
   }
   private logger = new Logger();
@@ -18,7 +16,11 @@ export class QueueProcessor extends WorkerHost {
       case REVIEW_MERGE_REQUEST:
         const { projectId, mergeRequestId, severity } = job.data;
         console.log(projectId, mergeRequestId, severity);
-        return await this.gitlabService.pushMergeRequestIntoQueue(projectId, mergeRequestId, severity);
+        return await this.gitlabService.pushMergeRequestIntoQueue(
+          projectId,
+          mergeRequestId,
+          severity,
+        );
       default:
         throw new Error('No job name match');
     }

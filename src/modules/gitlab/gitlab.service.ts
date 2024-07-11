@@ -82,7 +82,7 @@ export class GitlabService {
         message: 'What version are you in ?',
       });
 
-      console.log(response);
+      // console.log(response);
       // TODO: comment to merge request with the response
       // await placeComments(projectId, mergeRequestId, comments, paths);
     }
