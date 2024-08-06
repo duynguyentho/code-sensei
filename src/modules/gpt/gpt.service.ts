@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
-import { MAX_RETRIES_ATTEMPTS } from '../../constants';
+import { MAX_RETRIES_ATTEMPTS, RETRY_DELAY } from '../../constants';
 import { GptModel, GptRequestPayload } from './interfaces';
 import * as process from 'process';
 
@@ -22,7 +22,7 @@ export class GptService {
   };
 
   getCurrentGptModel(): GptModel {
-    return 'gpt-3.5-turbo';
+    return 'gpt-4o';
   }
 
   async getChatCompetitionPrompt(
@@ -44,8 +44,9 @@ export class GptService {
         if (currentRetries >= MAX_RETRIES_ATTEMPTS || retries === false) {
           throw e;
         }
+        this.logger.error(e);
 
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
       }
     }
   }
@@ -67,7 +68,12 @@ export class GptService {
       console.log('Received: ', result);
       if (result?.choices) {
         this.logger.log(`Token usage: ${result.usage.total_tokens}`);
-        return result?.choices.map((choice: any) => choice.message.content);
+
+
+        return result?.choices.map((choice: any) => {
+          console.log('Choices:', choice.message.content);
+          return choice.message.content;
+        });
       }
     } catch (e) {
       console.error('Error asking GPT:', e);

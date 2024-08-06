@@ -1,4 +1,4 @@
-import { api } from './gitlab-api';
+import { api } from '../../../shared/gitlab-api';
 import { parseDiff } from './parse-diff';
 import { MRFileVersions } from '../interfaces/merge-request-file-version';
 import { FileDiffResult } from '../interfaces';
