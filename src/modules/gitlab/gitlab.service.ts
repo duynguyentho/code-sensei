@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
-import { api } from './utils/gitlab-api';
+import { api } from '../../shared/gitlab-api';
 import { SeverityLevel } from './enums';
 import { QueueService } from '../queue/queue.service';
 import { REVIEW_MERGE_REQUEST } from '../../constants';
@@ -9,6 +9,7 @@ import {
   getOldAndNewFileVersions,
 } from './utils/file-versions';
 import { GptService } from '../gpt/gpt.service';
+import { initPromt } from '../gpt/utils';
 
 @Injectable()
 export class GitlabService {
@@ -79,10 +80,9 @@ export class GitlabService {
       const { oldFile, newFile, changedRanges } =
         await getOldAndNewFileVersions(projectId, mergeRequestId, paths);
       const response = await this.gptService.askGpt({
-        message: 'What version are you in ?',
+        message: initPromt(paths, { oldFile, newFile, changedRanges }),
       });
 
-      // console.log(response);
       // TODO: comment to merge request with the response
       // await placeComments(projectId, mergeRequestId, comments, paths);
     }

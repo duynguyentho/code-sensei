@@ -17,6 +17,8 @@ dev-down: ## Stop the development environment
 
 dev-build: ## Build the development environment
 	docker compose -f docker-compose.yml build
+dev-logs: ## Tail the logs of the development environment
+	docker compose logs sensei --follow
 
 dev-restart: dev-down dev-up ## Restart the development environment
 

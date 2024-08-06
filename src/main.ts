@@ -3,25 +3,13 @@ import { AppModule } from './app.module';
 import * as process from 'process';
 import { Logger } from '@nestjs/common';
 import * as express from 'express';
-import { api } from './modules/gitlab/utils/gitlab-api';
-import { Request, Response, NextFunction } from 'express';
-
-const handleSecretWebhook = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const requestToken = <string>req.headers['x-gitlab-token'];
-  const webhookSecret = <string>process.env.GITLAB_WEBHOOK_SECRET || '';
-  if (webhookSecret && requestToken !== webhookSecret) {
-    return res.status(401).send('Invalid token');
-  }
-
-  next();
-};
+import { api } from './shared/gitlab-api';
+import { handleSecretWebhook } from './shared/x-gitlab-token.middleware';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
   app.enableCors({
     origin: true,
   });
@@ -29,13 +17,13 @@ async function bootstrap() {
   app.use(express.urlencoded({ limit: '500mb', extended: true }));
   app.use(handleSecretWebhook);
 
-  await app.listen(process.env.PORT || 3000);
+  await app.listen(configService.get<number>('PORT') || 3001);
   await testConnection();
 }
 
 async function testConnection() {
   const logger = new Logger(testConnection.name);
-  logger.log('Testing connection to GitLab', testConnection.name);
+  logger.debug('Testing connection to GitLab');
 
   try {
     const user = await api.Users.current();
@@ -43,9 +31,10 @@ async function testConnection() {
       'Connected to GitLab successfully. Current user:',
       user.username,
     );
+
     return true;
   } catch (error) {
-    console.error('Failed to connect to GitLab:', error);
+    logger.error('Failed to connect to GitLab:', error);
     return false;
   }
 }
