@@ -22,10 +22,6 @@ export class AppService {
     ) {
       const commentBody = data.object_attributes.note;
 
-      console.log('====================================');
-      console.log(commentBody);
-      console.log('====================================');
-
       return await this.gitlabService.handleMergeRequestComment(
         commentBody,
         data,

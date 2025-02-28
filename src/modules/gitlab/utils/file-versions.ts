@@ -65,3 +65,83 @@ export async function getOldAndNewFileVersions(
   }
   return { oldFile, newFile, changedRanges: fileDiff.changedRanges };
 }
+
+export function getLineNumbers(
+  source: string,
+  quote: string,
+): [number, number] | null {
+  const location = locateInSource(source, quote);
+  if (location === null) {
+    return null;
+  }
+
+  // count the number of newline characters up to the start index
+  const [start, end] = location;
+  const beforeQuote = source.slice(0, start);
+  const afterQuote = source.slice(0, end);
+  const lineNumberStart = (beforeQuote.match(/\n/g) || []).length + 1;
+  const lineNumberEnd = (afterQuote.match(/\n/g) || []).length + 1;
+
+  return [lineNumberStart, lineNumberEnd];
+}
+
+export function getLineNumber(source: string, quote: string): number | null {
+  const lineNumbers = getLineNumbers(source, quote);
+  if (lineNumbers === null) {
+    return null;
+  } else {
+    return lineNumbers[0];
+  }
+}
+
+export function locateInSource(
+  source: string,
+  quote: string,
+): [number, number] | null {
+  // remove all whitespace from both source and quote
+  const normalizedSource = normalizeWhitespace(source);
+  const normalizedQuote = normalizeWhitespace(quote);
+
+  const normalizedStart = normalizedSource.indexOf(normalizedQuote);
+  if (normalizedStart === -1) {
+    return null;
+  }
+
+  const normalizedEnd = normalizedStart + normalizedQuote.length;
+
+  return reconstructOriginalLocation(source, normalizedStart, normalizedEnd);
+}
+
+function normalizeWhitespace(str: string): string {
+  // remove all whitespace characters, including newlines
+  return str.replace(/\s+/g, '');
+}
+
+function reconstructOriginalLocation(
+  source: string,
+  normalizedStart: number,
+  normalizedEnd: number,
+): [number, number] {
+  let originalStart = 0;
+  let originalEnd = 0;
+  let nonWhitespaceCharsCount = 0;
+
+  for (let i = 0; i < source.length; i++) {
+    if (/\s/.test(source[i])) {
+      continue; // skip whitespace
+    }
+
+    if (nonWhitespaceCharsCount === normalizedStart) {
+      originalStart = i;
+    }
+
+    if (nonWhitespaceCharsCount === normalizedEnd - 1) {
+      originalEnd = i + 1;
+      break;
+    }
+
+    nonWhitespaceCharsCount++;
+  }
+
+  return [originalStart, originalEnd];
+}

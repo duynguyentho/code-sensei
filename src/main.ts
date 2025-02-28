@@ -23,6 +23,7 @@ async function bootstrap() {
 
 async function testConnection() {
   const logger = new Logger(testConnection.name);
+  logger.debug(`Server is running on port: ${process.env.PORT}`);
   logger.debug('Testing connection to GitLab');
 
   try {

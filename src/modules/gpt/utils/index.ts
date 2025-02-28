@@ -31,7 +31,8 @@ export const initPromt = (
     query += `New file:\n\n${versions.newFile}\n\n`;
   }
 
-  query += `Please create a list of any issues you see with the code. Only include issues where you are really confident that they should be improved.`+
+  query +=
+    `Please create a list of any issues you see with the code. Only include issues where you are really confident that they should be improved.` +
     `The code should be more readable and please give some suggest to improve the coding convention and logic. For example, the if statement should not be too complicated` +
     `If no such issues exist, leave the list empty. Ignore any issues related to imports from other files. The issues should have the following format (it's fine to create multiple comments on the same line):\n\n`;
 
