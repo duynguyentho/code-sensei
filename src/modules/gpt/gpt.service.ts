@@ -22,7 +22,7 @@ export class GptService {
   };
 
   getCurrentGptModel(): GptModel {
-    return 'gpt-4.5-preview';
+    return 'gpt-4o';
   }
 
   async getChatCompetitionPrompt(
