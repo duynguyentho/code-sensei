@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
-import { MAX_RETRIES_ATTEMPTS } from '../../constants';
-import { GptModel, GptRequestPayload } from './interfaces';
-import * as process from 'process';
+import axios, { AxiosResponse } from 'axios';
+import { MAX_RETRIES_ATTEMPTS, RETRY_DELAY } from '../../constants';
+import { GptModel, GptRequestPayload, GptResponseBody } from './interfaces';
+import { ReviewComment } from '../gitlab/enums';
 
 @Injectable()
 export class GptService {
@@ -22,19 +22,23 @@ export class GptService {
   };
 
   getCurrentGptModel(): GptModel {
-    return 'gpt-3.5-turbo';
+    return 'gpt-4.5-preview';
   }
 
   async getChatCompetitionPrompt(
     payload: GptRequestPayload,
     retries: boolean,
-  ): Promise<any> {
+  ): Promise<GptResponseBody> {
     let currentRetries = 0;
     while (true) {
       try {
-        const response = await axios.post(this.getCompetitionsUrl(), payload, {
-          headers: this.getAuthenticationHeaders(),
-        });
+        const response: AxiosResponse<GptResponseBody> = await axios.post(
+          this.getCompetitionsUrl(),
+          payload,
+          {
+            headers: this.getAuthenticationHeaders(),
+          },
+        );
 
         if (response.data) {
           return response.data;
@@ -44,13 +48,14 @@ export class GptService {
         if (currentRetries >= MAX_RETRIES_ATTEMPTS || retries === false) {
           throw e;
         }
+        this.logger.error(e);
 
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
       }
     }
   }
 
-  async askGpt(data: any): Promise<any> {
+  async askGpt(data: any): Promise<string[] | null> {
     console.log('Asking GPT .....');
     try {
       const payload: GptRequestPayload = {
@@ -61,13 +66,13 @@ export class GptService {
             content: data.message,
           },
         ],
-        n: 5,
+        n: 1,
       };
       const result = await this.getChatCompetitionPrompt(payload, true);
-      console.log('Received: ', result);
       if (result?.choices) {
-        this.logger.log(`Token usage: ${result.usage.total_tokens}`);
-        return result?.choices.map((choice: any) => choice.message.content);
+        return result?.choices.map((choice: any) => {
+          return choice.message.content;
+        });
       }
     } catch (e) {
       console.error('Error asking GPT:', e);

@@ -11,7 +11,7 @@ export class QueueProcessor extends WorkerHost {
   }
   private logger = new Logger();
 
-  async process(job: Job<any, any, string>, token?: string): Promise<any> {
+  async process(job: Job<any, any, string>): Promise<any> {
     switch (job.name) {
       case REVIEW_MERGE_REQUEST:
         const { projectId, mergeRequestId, severity } = job.data;
@@ -32,19 +32,30 @@ export class QueueProcessor extends WorkerHost {
   }
 
   @OnWorkerEvent('completed')
-  onQueueComplete(job: Job, result: any) {
+  onQueueComplete(job: Job) {
     this.logger.log(`COMPLETE: ${job.id}`);
+
+    job
+      .remove({
+        removeChildren: true,
+      })
+      .then((res) => this.logger.log(res));
+    // clear job queue redis
   }
 
   @OnWorkerEvent('failed')
   onQueueFailed(job: Job, err: any) {
     this.logger.log(`FAILED: ${job.id}`);
     this.logger.log({ err });
+
+    job.remove().then((res) => this.logger.log(res));
   }
 
   @OnWorkerEvent('error')
-  onQueueError(err: any) {
+  onQueueError(job: Job, err: any) {
     this.logger.log(`ERROR: `);
     this.logger.log({ err });
+
+    job.remove().then((res) => this.logger.log(res));
   }
 }
